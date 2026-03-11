@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Plan {
+  FREE
+  PRO
+  BUSINESS
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  STRIPE
+  MANUAL
+}
+
+model User {
+  id               Int            @id @default(autoincrement())
+  email            String         @unique
+  password         String
+  name             String?
+  plan             Plan           @default(FREE)
+  isAdmin          Boolean        @default(false)
+  stripeCustomerId String?        @unique
+  createdAt        DateTime       @default(now())
+
+  links            Link[]
+  subscriptions    Subscription[]
+  payments         Payment[]
+}
+
+model Link {
+  id        Int       @id @default(autoincrement())
+  slug      String    @unique
+  url       String
+  clicks    Int       @default(0)
+  userId    Int
+  expiresAt DateTime?
+  maxClicks Int?
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id])
+  clickLogs ClickLog[]
+}
+
+model ClickLog {
+  id        Int      @id @default(autoincrement())
+  linkId    Int
+  ip        String?
+  country   String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  link      Link     @relation(fields: [linkId], references: [id], onDelete: Cascade)
+}
+
+model Subscription {
+  id                   Int      @id @default(autoincrement())
+  userId               Int
+  plan                 Plan
+  status               String
+  stripeSubscriptionId String?  @unique
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  cancelAtPeriodEnd    Boolean  @default(false)
+  createdAt            DateTime @default(now())
+
+  user                 User     @relation(fields: [userId], references: [id])
+}
+
+model Payment {
+  id              Int           @id @default(autoincrement())
+  userId          Int
+  plan            Plan
+  amount          Int
+  method          PaymentMethod
+  status          PaymentStatus @default(PENDING)
+  stripePaymentId String?       @unique
+  proofUrl        String?
+  validatedBy     Int?
+  validatedAt     DateTime?
+  billingPeriod   String?
+  createdAt       DateTime      @default(now())
+
+  user            User          @relation(fields: [userId], references: [id])
+}
