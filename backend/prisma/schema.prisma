@@ -28,8 +28,10 @@ enum PaymentMethod {
 model User {
   id               Int            @id @default(autoincrement())
   email            String         @unique
-  password         String
+  password         String?        // ← nullable pour Google
   name             String?
+  avatar           String?        // ← AJOUTER photo Google
+  googleId         String?        @unique // ← AJOUTER
   plan             Plan           @default(FREE)
   isAdmin          Boolean        @default(false)
   stripeCustomerId String?        @unique

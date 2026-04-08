@@ -19,12 +19,16 @@ async function req(method, path, body) {
   return data;
 }
 
-// Auth
+// ─── Auth ─────────────────────────────────────────────────────────────────────
 export const authAPI = {
   register: (body) => req("POST", "/auth/register", body),
   login:    (body) => req("POST", "/auth/login",    body),
+  logout:   ()     => req("POST", "/auth/logout"),
   me:       ()     => req("GET",  "/auth/me"),
+  // Google OAuth : redirection directe, pas de fetch
+  loginWithGoogle: () => { window.location.href = "/api/auth/google"; },
 };
+
 
 // Links
 export const linksAPI = {
